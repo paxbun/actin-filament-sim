@@ -400,11 +400,9 @@ export default class Display extends React.Component<
             .forEach(lineTo);
           ctx.strokeStyle = this.props.adpSubunitColor;
           ctx.stroke();
-          // Draw the maximum height
-          ctx.font = this.font;
-          ctx.fillStyle = "white";
-          ctx.textAlign = "right";
-          ctx.fillText(Math.floor(maxHeight).toString(), rel(0.88), rel(0.18));
+          this.drawMaxValue(maxHeight, ctx);
+        } else {
+          this.drawMaxValue(10, ctx);
         }
         this.drawGraphBox(ctx);
       }
@@ -455,16 +453,12 @@ export default class Display extends React.Component<
               .map((key) => [key, curr.get(key) as number] as [number, number])
               .forEach(fillRect);
 
-            // Draw the maximum height
-            ctx.font = this.font;
-            ctx.fillStyle = "white";
-            ctx.textAlign = "right";
-            ctx.fillText(
-              Math.floor(maxNumber).toString(),
-              rel(0.88),
-              rel(0.18)
-            );
+            this.drawMaxValue(maxNumber, ctx);
+          } else {
+            this.drawMaxValue(10, ctx);
           }
+        } else {
+          this.drawMaxValue(10, ctx);
         }
         this.drawGraphBox(ctx);
       }
@@ -472,7 +466,7 @@ export default class Display extends React.Component<
   }
 
   /**
-   * draw graph axis
+   * draws graph axis
    * @param ctx canvas to draw graph on
    */
   private drawGraphBox(ctx: CanvasRenderingContext2D) {
@@ -493,6 +487,19 @@ export default class Display extends React.Component<
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  /**
+   * draws the given value
+   * @param maxValue value to draw
+   * @param ctx canvas to draw the value on
+   */
+  private drawMaxValue(maxValue: number, ctx: CanvasRenderingContext2D) {
+    const rel = (ratio: number) => this.props.graphSize * ratio;
+    ctx.font = this.font;
+    ctx.fillStyle = "white";
+    ctx.textAlign = "right";
+    ctx.fillText(Math.floor(maxValue).toString(), rel(0.88), rel(0.18));
   }
 
   /**
