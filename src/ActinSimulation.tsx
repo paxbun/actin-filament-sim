@@ -3,10 +3,10 @@ import ISimulation, {
   IActin,
   Vector,
   IActinGroup,
-  sum
+  sum,
 } from "./Simulation";
 import Actin from "./Actin";
-import { Engine } from "matter-js";
+import { Engine, World, Bodies } from "matter-js";
 
 class SingleActinGroup implements IActinGroup {
   public constructor(private actin: Actin) {}
@@ -26,6 +26,20 @@ export default class ActinSimulation implements ISimulation {
 
   public constructor() {
     this.engine.world.gravity.y = 0;
+    const number = 16;
+    for (let i = 0; i < number; ++i) {
+      const rect = Bodies.rectangle(
+        Math.cos((2 * i * Math.PI) / number) * 400,
+        Math.sin((2 * i * Math.PI) / number) * 400,
+        20,
+        2 * Math.PI * 400 / number + 10,
+        {
+          isStatic: true,
+          angle: (2 * i * Math.PI) / number,
+        }
+      );
+      World.add(this.engine.world, rect);
+    }
   }
 
   public getCurrentState(): IActinGroup[] {
@@ -64,7 +78,7 @@ export default class ActinSimulation implements ISimulation {
   }
 
   public getRadius(): number {
-    return 10;
+    return 5;
   }
 
   public precede(deltaTime: number): void {
@@ -77,6 +91,6 @@ export default class ActinSimulation implements ISimulation {
   }
 
   public add(pos: Vector): void {
-    this.actinGroups.push(new SingleActinGroup(new Actin(pos, this.engine)));
+    this.actinGroups.push(new SingleActinGroup(new Actin(pos, 5, this.engine)));
   }
 }

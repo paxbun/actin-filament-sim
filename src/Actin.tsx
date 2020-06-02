@@ -13,8 +13,8 @@ export default class Actin implements IActin {
 
   private body: Body;
 
-  public constructor(public pos: Vector, engine: Engine) {
-    this.body = Bodies.circle(pos[0], pos[1], 10, {
+  public constructor(public pos: Vector, radius: number, engine: Engine) {
+    this.body = Bodies.circle(pos[0], pos[1], radius, {
       angle: this.orientation,
       mass: 10,
       friction: 0,
