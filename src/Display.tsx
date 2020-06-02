@@ -73,13 +73,9 @@ export default class Display extends React.Component<
 
   public componentDidMount() {
     this.lastPoint = Date.now();
-    this.ticker = window.setInterval(() => {
-      this.tick();
-      this.draw();
-    }, 1000 / 60);
-    this.statisticsTicker = window.setInterval(() => {
-      this.updateGraphs();
-    }, 1000);
+    window.requestAnimationFrame(() => this.draw());
+    this.ticker = window.setInterval(() => this.tick(), 1000 / 60);
+    this.statisticsTicker = window.setInterval(() => this.updateGraphs(), 1000);
   }
 
   public componentWillUnmount() {
@@ -123,7 +119,7 @@ export default class Display extends React.Component<
           }}
           onClick={(event) => {
             this.setState({
-              statistics: []
+              statistics: [],
             });
             this.props.onReset();
           }}
@@ -175,6 +171,7 @@ export default class Display extends React.Component<
         }
       }
     }
+    window.requestAnimationFrame(() => this.draw());
   }
 
   /**
