@@ -1,26 +1,57 @@
-import ISimulation, { IStatistics, IActin, Vector } from "./Simulation";
+import ISimulation, {
+  IStatistics,
+  IActin,
+  Vector,
+  IActinGroup,
+  sum,
+} from "./Simulation";
+
+class SingleActinGroup implements IActinGroup {
+  public constructor(private actin: IActin) {}
+
+  public actins(): IActin[] {
+    return [this.actin];
+  }
+}
 
 /**
  * the implementation of `ISimulation'
  */
 export default class ActinSimulation implements ISimulation {
-  private actins: IActin[] = [];
+  private actinGroups: IActinGroup[] = [];
 
-  public getCurrentState(): IActin[] {
-    return this.actins;
+  public getCurrentState(): IActinGroup[] {
+    return this.actinGroups;
   }
 
   public getCurrentStatistics(): IStatistics {
     const rtn = new Map<number, number>();
-    rtn.set(10, 20);
-    rtn.set(8, 17);
-    if (Math.random() > 0.5) {
-      rtn.set(5, 25);
+    for (const group of this.actinGroups) {
+      const length = group.actins().length;
+      if (rtn.has(length)) {
+        rtn.set(length, (rtn.get(length) as number) + 1);
+      } else {
+        rtn.set(length, 1);
+      }
     }
+    const [atp, adp] = this.actinGroups.reduce(
+      (prev: Vector, curr: IActinGroup): Vector => {
+        return sum(
+          prev,
+          curr.actins().reduce(
+            (prev: Vector, actin: IActin): Vector => {
+              return sum(prev, actin.hasAtp ? [1, 0] : [0, 1]);
+            },
+            [0, 0]
+          )
+        );
+      },
+      [0, 0]
+    );
     return {
       numberByLength: rtn,
-      numberWithAdp: 100 * Math.random(),
-      numberWithAtp: 50 * Math.random(),
+      numberWithAtp: atp,
+      numberWithAdp: adp,
     };
   }
 
@@ -29,19 +60,23 @@ export default class ActinSimulation implements ISimulation {
   }
 
   public precede(deltaTime: number): void {
-    for (const actin of this.actins) {
-      const [x, y] = actin.pos;
-      const [vx, vy] = actin.velocity;
-      actin.pos = [x + vx * deltaTime, y + vy * deltaTime];
+    for (const group of this.actinGroups) {
+      for (const actin of group.actins()) {
+        const [x, y] = actin.pos;
+        const [vx, vy] = actin.velocity;
+        actin.pos = [x + vx * deltaTime, y + vy * deltaTime];
+      }
     }
   }
 
   public add(pos: Vector): void {
-    this.actins.push({
-      pos: pos,
-      orientation: Math.random() * 2 * Math.PI,
-      velocity: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
-      hasAtp: false,
-    });
+    this.actinGroups.push(
+      new SingleActinGroup({
+        pos: pos,
+        orientation: Math.random() * 2 * Math.PI,
+        velocity: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
+        hasAtp: false,
+      })
+    );
   }
 }

@@ -71,6 +71,16 @@ export interface IActin {
 }
 
 /**
+ * represents an actin filament
+ */
+export interface IActinGroup {
+  /**
+   * @returns actins in this filament
+   */
+  actins(): IActin[];
+}
+
+/**
  * represents statistics about the current state of the simulation
  */
 export interface IStatistics {
@@ -97,7 +107,7 @@ export default interface ISimulation {
   /**
    * @returns the list of the subunits in the current state
    */
-  getCurrentState(): IActin[];
+  getCurrentState(): IActinGroup[];
 
   /**
    * @returns the statistics about the current state

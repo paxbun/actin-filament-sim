@@ -269,28 +269,30 @@ export default class Display extends React.Component<
         this.drawGrid(ctx);
         ctx.lineWidth = 1;
         ctx.strokeStyle = "black";
-        for (const subunit of current) {
-          const [x, y] = this.convertRightToLeft(subunit.pos);
-          const cos = radius * Math.cos(subunit.orientation);
-          const sin = radius * Math.sin(subunit.orientation);
-          ctx.beginPath();
-          const grad = ctx.createLinearGradient(
-            x - cos,
-            y - sin,
-            x + cos,
-            y + sin
-          );
-          grad.addColorStop(
-            0,
-            subunit.hasAtp
-              ? this.props.atpSubunitColor
-              : this.props.adpSubunitColor
-          );
-          grad.addColorStop(1, this.props.subunitBindingDomainColor);
-          ctx.fillStyle = grad;
-          ctx.arc(x, y, radius, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.stroke();
+        for (const group of current) {
+          for (const subunit of group.actins()) {
+            const [x, y] = this.convertRightToLeft(subunit.pos);
+            const cos = radius * Math.cos(subunit.orientation);
+            const sin = radius * Math.sin(subunit.orientation);
+            ctx.beginPath();
+            const grad = ctx.createLinearGradient(
+              x - cos,
+              y - sin,
+              x + cos,
+              y + sin
+            );
+            grad.addColorStop(
+              0,
+              subunit.hasAtp
+                ? this.props.atpSubunitColor
+                : this.props.adpSubunitColor
+            );
+            grad.addColorStop(1, this.props.subunitBindingDomainColor);
+            ctx.fillStyle = grad;
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+          }
         }
       }
     }
