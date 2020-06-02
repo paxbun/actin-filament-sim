@@ -59,6 +59,20 @@ export function abs(vec: Vector): number {
 }
 
 /**
+ * @returns the dot product of the two vectors
+ */
+export function dot(lhs: Vector, rhs: Vector): number {
+  return lhs[0] * rhs[0] + lhs[1] * rhs[1];
+}
+
+/**
+ * @returns the unit vector with the same orientation
+ */
+export function unit(vec: Vector): Vector {
+  return div(vec, abs(vec));
+}
+
+/**
  * represents a single actin subunit
  */
 export interface IActin {
