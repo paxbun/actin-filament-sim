@@ -1,0 +1,10 @@
+@import "./Display.scss";
+
+.display-ui-btn:hover {
+  background-color: $display-ui-bgr-faded;
+}
+
+.display-ui-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}

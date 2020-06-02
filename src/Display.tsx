@@ -1,6 +1,7 @@
 import React from "react";
 import ISimulation, { IStatistics } from "./Simulation";
 import "./Display.scss";
+import Button from "./Button";
 
 /**
  * properties used by `Display`
@@ -87,9 +88,8 @@ export default class Display extends React.Component<
   public render() {
     return (
       <div
+        className="display"
         style={{
-          position: "relative",
-          display: "inline-block",
           width: `${this.props.width}px`,
           height: `${this.props.height}px`,
         }}
@@ -99,6 +99,7 @@ export default class Display extends React.Component<
           width={this.props.width}
           height={this.props.height}
           style={{
+            position: "absolute",
             left: "0px",
             top: "0px",
             width: "100%",
@@ -109,15 +110,8 @@ export default class Display extends React.Component<
             this.props.simulation.add([event.clientX, event.clientY]);
           }}
         />
-        <div
-          className="display-ui display-ui-btn"
-          style={{
-            position: "absolute",
-            left: "20px",
-            top: "20px",
-            color: "white",
-          }}
-          onClick={(event) => {
+        <Button
+          onClick={() => {
             this.setState({
               statistics: [],
             });
@@ -125,7 +119,7 @@ export default class Display extends React.Component<
           }}
         >
           Reset
-        </div>
+        </Button>
       </div>
     );
   }
@@ -183,6 +177,5 @@ export default class Display extends React.Component<
     if (statistics.length > 20) {
       statistics.splice(0, 1);
     }
-    console.log(statistics);
   }
 }

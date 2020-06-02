@@ -1,17 +1,20 @@
+$display-ui-bgr: rgba(#3b5948, 0.2);
+$display-ui-bgr-faded: rgba(#353d35, 0.2);
+
+.display {
+  position: relative;
+  display: inline-block;
+  color: white;
+}
+
 .display-ui {
   padding: 5px;
+  position: relative;
   border-radius: 5px;
   border: 1px solid black;
-  background-color: rgba(#3b5948, 0.2);
+  background-color: $display-ui-bgr;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-  transition: margin 0.2s;
-}
-
-.display-ui-btn:hover {
-  background-color: rgba(#353d35, 0.2);
-}
-
-.display-ui-btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: transform 0.2s;
+  z-index: 2000;
+  display: inline-block;
 }
