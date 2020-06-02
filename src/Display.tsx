@@ -1,5 +1,6 @@
 import React from "react";
 import ISimulation, { IStatistics } from "./Simulation";
+import "./Display.scss";
 
 /**
  * properties used by `Display`
@@ -113,10 +114,11 @@ export default class Display extends React.Component<
           }}
         />
         <div
+          className="display-ui display-ui-btn"
           style={{
             position: "absolute",
-            left: "0px",
-            top: "0px",
+            left: "20px",
+            top: "20px",
             color: "white",
           }}
           onClick={(event) => {
@@ -169,6 +171,7 @@ export default class Display extends React.Component<
           ctx.fillStyle = grad;
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.fill();
+          ctx.stroke();
         }
       }
     }
