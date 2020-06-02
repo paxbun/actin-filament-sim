@@ -61,6 +61,11 @@ export interface IDisplayState {
    * Statistics retrieved within the last few seconds
    */
   statistics: IStatistics[];
+
+  /**
+   * fps
+   */
+  fps: number;
 }
 
 /**
@@ -104,11 +109,25 @@ export default class Display extends React.Component<
     HTMLCanvasElement
   > = React.createRef();
 
+  /**
+   * font used by canvas
+   */
+  private font: string;
+
+  /**
+   * true if the mouse is pressed; false otherwise
+   */
+  private mouseDown: boolean = false;
+
   public constructor(props: IDisplayProperties) {
     super(props);
     this.state = {
       statistics: [],
+      fps: 0,
     };
+    this.font = `${Math.round(
+      this.props.graphSize * 0.05
+    )}px Segoe UI, Tahoma, Geneva, Verdana, sans-serif`;
   }
 
   public componentDidMount() {
@@ -145,11 +164,22 @@ export default class Display extends React.Component<
             height: "100%",
             zIndex: 0,
           }}
-          onClick={(event) => {
-            this.props.simulation.add([event.clientX, event.clientY]);
+          onMouseDown={() => (this.mouseDown = true)}
+          onMouseUp={() => (this.mouseDown = false)}
+          onMouseMove={(event) => {
+            if (this.mouseDown) {
+              this.props.simulation.add([event.clientX, event.clientY]);
+            }
           }}
         />
         <div className="display-ui-wrapper">
+          <div
+            className="display-ui display-ui-graph"
+            style={{ width: this.props.graphSize + 10 }}
+          >
+            <div>FPS: {this.state.fps}</div>
+          </div>
+          <br />
           <div
             className="display-ui display-ui-graph"
             style={{ width: this.props.graphSize + 10 }}
@@ -194,7 +224,11 @@ export default class Display extends React.Component<
    */
   private tick(): void {
     const newPoint = Date.now();
-    this.props.simulation.precede((newPoint - this.lastPoint) / 1000);
+    const interval = (newPoint - this.lastPoint) / 1000;
+    this.setState({
+      fps: Math.round(1 / interval),
+    });
+    this.props.simulation.precede(interval);
     this.lastPoint = newPoint;
   }
 
@@ -254,29 +288,26 @@ export default class Display extends React.Component<
     const c = this.atpGraphCanvasRef.current;
     const size = this.props.graphSize;
     const rel = (ratio: number) => size * ratio;
-    const font = `${Math.round(
-      rel(0.05)
-    )}px Segoe UI, Tahoma, Geneva, Verdana, sans-serif`;
     if (c) {
       const ctx = c.getContext("2d");
       if (ctx) {
         ctx.clearRect(0, 0, size, size);
         ctx.lineWidth = 1;
+
         // Draw texts
-        {
-          ctx.font = `normal bold ${font}`;
-          ctx.textAlign = "left";
-          ctx.fillStyle = this.props.atpSubunitColor;
-          ctx.fillText("ATP", rel(0.14), rel(0.97));
-          ctx.fillStyle = this.props.adpSubunitColor;
-          ctx.fillText("ADP", rel(0.25), rel(0.97));
-        }
+        ctx.font = `normal bold ${this.font}`;
+        ctx.textAlign = "left";
+        ctx.fillStyle = this.props.atpSubunitColor;
+        ctx.fillText("ATP", rel(0.14), rel(0.97));
+        ctx.fillStyle = this.props.adpSubunitColor;
+        ctx.fillText("ADP", rel(0.25), rel(0.97));
+
         if (this.state.statistics.length !== 0) {
           const maxHeight = this.state.statistics.reduce(
             (prev: number, curr: IStatistics) => {
               return Math.max(prev, curr.numberWithAtp, curr.numberWithAdp);
             },
-            0
+            10
           );
           const lineTo = (value: number, idx: number): void => {
             ctx.lineTo(
@@ -300,7 +331,7 @@ export default class Display extends React.Component<
           ctx.strokeStyle = this.props.adpSubunitColor;
           ctx.stroke();
           // Draw the maximum height
-          ctx.font = font;
+          ctx.font = this.font;
           ctx.fillStyle = "white";
           ctx.textAlign = "right";
           ctx.fillText(Math.floor(maxHeight).toString(), rel(0.88), rel(0.18));
@@ -321,6 +352,48 @@ export default class Display extends React.Component<
       const ctx = c.getContext("2d");
       if (ctx) {
         ctx.clearRect(0, 0, size, size);
+        if (this.state.statistics.length !== 0) {
+          const curr = this.state.statistics[this.state.statistics.length - 1]
+            .numberByLength;
+          if (curr.size !== 0) {
+            const keys = Array.from(curr.keys());
+            const maxNumber = keys.reduce(
+              (prev: number, key: number) =>
+                Math.max(prev, curr.get(key) as number),
+              10
+            );
+            const maxLength = Math.max(...keys);
+            const minLength = Math.min(...keys);
+            const domainSize = (maxLength - minLength) + 1;
+            const fillRect = (keyValue: number[]): void => {
+              const [length, number] = keyValue;
+              const width = rel(0.8) / domainSize;
+              const height = (rel(0.7) * number) / maxNumber;
+              const x = rel(0.1) + (length - minLength) * width;
+              ctx.fillRect(
+                x + 0.1 * width,
+                rel(0.9) - height,
+                width * 0.8,
+                height
+              );
+              ctx.textAlign = "center";
+              ctx.fillText(length.toString(), x + 0.5 * width, rel(0.97));
+            };
+
+            ctx.fillStyle = this.props.subunitBindingDomainColor;
+            keys.map((key) => [key, curr.get(key) as number]).forEach(fillRect);
+
+            // Draw the maximum height
+            ctx.font = this.font;
+            ctx.fillStyle = "white";
+            ctx.textAlign = "right";
+            ctx.fillText(
+              Math.floor(maxNumber).toString(),
+              rel(0.88),
+              rel(0.18)
+            );
+          }
+        }
         this.drawGraphBox(ctx);
       }
     }
