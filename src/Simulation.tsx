@@ -22,7 +22,7 @@ export function sum(lhs: Vector, rhs: Vector): Vector {
 }
 
 /**
- * @returns difference between two vectors 
+ * @returns difference between two vectors
  */
 export function diff(lhs: Vector, rhs: Vector): Vector {
   return [lhs[0] - rhs[0], lhs[1] - rhs[1]];
@@ -43,7 +43,20 @@ export function div(vec: Vector, div: number): Vector {
   return mul(1 / div, vec);
 }
 
+/**
+ * @returns the square of norm of `vec`
+ */
+export function abs2(vec: Vector): number {
+  const [x, y] = vec;
+  return x * x + y * y;
+}
 
+/**
+ * @returns the norm of `vec`
+ */
+export function abs(vec: Vector): number {
+  return Math.sqrt(abs2(vec));
+}
 
 /**
  * represents a single actin subunit

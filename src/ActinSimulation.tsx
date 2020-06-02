@@ -3,13 +3,15 @@ import ISimulation, {
   IActin,
   Vector,
   IActinGroup,
-  sum,
+  sum
 } from "./Simulation";
+import Actin from "./Actin";
+import { Engine } from "matter-js";
 
 class SingleActinGroup implements IActinGroup {
-  public constructor(private actin: IActin) {}
+  public constructor(private actin: Actin) {}
 
-  public actins(): IActin[] {
+  public actins(): Actin[] {
     return [this.actin];
   }
 }
@@ -18,7 +20,13 @@ class SingleActinGroup implements IActinGroup {
  * the implementation of `ISimulation'
  */
 export default class ActinSimulation implements ISimulation {
-  private actinGroups: IActinGroup[] = [];
+  private actinGroups: SingleActinGroup[] = [];
+
+  private engine = Engine.create();
+
+  public constructor() {
+    this.engine.world.gravity.y = 0;
+  }
 
   public getCurrentState(): IActinGroup[] {
     return this.actinGroups;
@@ -60,23 +68,15 @@ export default class ActinSimulation implements ISimulation {
   }
 
   public precede(deltaTime: number): void {
+    Engine.update(this.engine, deltaTime, 1);
     for (const group of this.actinGroups) {
       for (const actin of group.actins()) {
-        const [x, y] = actin.pos;
-        const [vx, vy] = actin.velocity;
-        actin.pos = [x + vx * deltaTime, y + vy * deltaTime];
+        actin.update();
       }
     }
   }
 
   public add(pos: Vector): void {
-    this.actinGroups.push(
-      new SingleActinGroup({
-        pos: pos,
-        orientation: Math.random() * 2 * Math.PI,
-        velocity: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
-        hasAtp: false,
-      })
-    );
+    this.actinGroups.push(new SingleActinGroup(new Actin(pos, this.engine)));
   }
 }
