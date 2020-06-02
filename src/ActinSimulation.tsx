@@ -5,14 +5,7 @@ import ISimulation, { IStatistics, IActin, Vector } from './Simulation';
  */
 export default class ActinSimulation implements ISimulation {
 
-    private actins: IActin[] = [
-        {
-            pos: [100, 100],
-            orientation: 5,
-            velocity: [0, 0],
-            hasAtp: false,
-        }
-    ];
+    private actins: IActin[] = [];
 
     public getCurrentState(): IActin[] {
         return this.actins;
@@ -27,18 +20,22 @@ export default class ActinSimulation implements ISimulation {
     }
 
     public getRadius(): number {
-        return 20;
+        return 10;
     }
 
     public precede(deltaTime: number): void {
-        // TODO
+        for (const actin of this.actins) {
+            const [x, y] = actin.pos;
+            const [vx, vy] = actin.velocity;
+            actin.pos = [x + vx * deltaTime, y + vy * deltaTime];
+        }
     }
 
     public add(pos: Vector): void {
         this.actins.push({
             pos: pos,
-            orientation: 0,
-            velocity: [0, 0],
+            orientation: Math.random() * 2 * Math.PI,
+            velocity: [(Math.random() * 2 - 1) * 10, (Math.random() * 2 - 1) * 10],
             hasAtp: false
         });
     }
