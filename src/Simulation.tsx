@@ -65,6 +65,11 @@ export default interface ISimulation {
   getCurrentStatistics(): IStatistics;
 
   /**
+   * @returns the radius of subunits
+   */
+  getRadius(): number;
+
+  /**
    * calculates the next state
    * @param deltaTime the length of time between the last call and the current call of this method
    */
