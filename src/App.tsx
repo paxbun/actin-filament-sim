@@ -2,6 +2,7 @@ import React from "react";
 import Display from "./Display";
 import ActinSimulation from "./ActinSimulation";
 import ISimulation from "./Simulation";
+import "./App.scss";
 
 /**
  * state used by `App`
@@ -36,13 +37,7 @@ export default class App extends React.Component<{}, IAppState> {
 
   public render() {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          backgroundColor: "black",
-        }}
-      >
+      <div className="app">
         <Display
           simulation={this.state.simulation}
           width={this.state.width}
