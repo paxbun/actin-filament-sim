@@ -6,6 +6,46 @@
 export type Vector = [number, number];
 
 /**
+ * @returns the copied vector
+ * @param vec the vector to copy
+ */
+export function copy(vec: Vector): Vector {
+  const [x, y] = vec;
+  return [x, y];
+}
+
+/**
+ *  @returns sum of two vectors
+ */
+export function sum(lhs: Vector, rhs: Vector): Vector {
+  return [lhs[0] + rhs[0], lhs[1] + rhs[1]];
+}
+
+/**
+ * @returns difference between two vectors 
+ */
+export function diff(lhs: Vector, rhs: Vector): Vector {
+  return [lhs[0] - rhs[0], lhs[1] - rhs[1]];
+}
+
+/**
+ * @returns the scalar product
+ */
+export function mul(scale: number, vec: Vector): Vector {
+  const [x, y] = vec;
+  return [scale * x, scale * y];
+}
+
+/**
+ * @returns `mul(1/ div, vec)`
+ */
+export function div(vec: Vector, div: number): Vector {
+  return mul(1 / div, vec);
+}
+
+
+
+/**
  * represents a single actin subunit
  */
 export interface IActin {
