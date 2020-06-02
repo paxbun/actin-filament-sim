@@ -19,6 +19,11 @@ export interface IDisplayProperties {
    * the height of the display
    */
   height: number;
+
+  /**
+   * invoked when the user pressed the `reset` button
+   */
+  onReset: () => void;
 }
 
 /**
@@ -34,7 +39,10 @@ export interface IDisplayState {
 /**
  * displays the current state of the simulation
  */
-export default class Display extends React.Component<IDisplayProperties, IDisplayState> {
+export default class Display extends React.Component<
+  IDisplayProperties,
+  IDisplayState
+> {
   /**
    * function handler returned by `window.setInterval`; used to update the canvas
    */
@@ -58,7 +66,7 @@ export default class Display extends React.Component<IDisplayProperties, IDispla
   public constructor(props: IDisplayProperties) {
     super(props);
     this.state = {
-      statistics: []
+      statistics: [],
     };
   }
 
@@ -88,9 +96,6 @@ export default class Display extends React.Component<IDisplayProperties, IDispla
           width: `${this.props.width}px`,
           height: `${this.props.height}px`,
         }}
-        onClick={(event) => {
-          this.props.simulation.add([event.clientX, event.clientY]);
-        }}
       >
         <canvas
           ref={this.canvasRef}
@@ -103,7 +108,26 @@ export default class Display extends React.Component<IDisplayProperties, IDispla
             height: "100%",
             zIndex: 0,
           }}
+          onClick={(event) => {
+            this.props.simulation.add([event.clientX, event.clientY]);
+          }}
         />
+        <div
+          style={{
+            position: "absolute",
+            left: "0px",
+            top: "0px",
+            color: "white",
+          }}
+          onClick={(event) => {
+            this.setState({
+              statistics: []
+            });
+            this.props.onReset();
+          }}
+        >
+          Reset
+        </div>
       </div>
     );
   }
