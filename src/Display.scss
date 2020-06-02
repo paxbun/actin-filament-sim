@@ -15,6 +15,15 @@ $display-ui-bgr-faded: rgba(#353d35, 0.2);
   margin-bottom: 10px;
 }
 
+.display-ui-graph > span {
+  text-align: center;
+  margin-top: 10px;
+  display: block;
+  font-size: small;
+  font-weight: bold;
+  width: 100%;
+}
+
 .display-ui {
   padding: 5px;
   position: relative;

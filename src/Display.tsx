@@ -33,6 +33,21 @@ export interface IDisplayProperties {
   reserveStatisticsFor: number;
 
   /**
+   * color of subunits with ATP
+   */
+  atpSubunitColor: string;
+
+  /**
+   * color of subunits with ADP
+   */
+  adpSubunitColor: string;
+
+  /**
+   * color of binding domain in subunits
+   */
+  subunitBindingDomainColor: string;
+
+  /**
    * invoked when the user pressed the `reset` button
    */
   onReset: () => void;
@@ -135,7 +150,11 @@ export default class Display extends React.Component<
           }}
         />
         <div className="display-ui-wrapper">
-          <div className="display-ui">
+          <div
+            className="display-ui display-ui-graph"
+            style={{ width: this.props.graphSize + 10 }}
+          >
+            <span>Number of subunits with ATP or ADP</span>
             <canvas
               width={this.props.graphSize}
               height={this.props.graphSize}
@@ -143,7 +162,11 @@ export default class Display extends React.Component<
             />
           </div>
           <br />
-          <div className="display-ui">
+          <div
+            className="display-ui display-ui-graph"
+            style={{ width: this.props.graphSize + 10 }}
+          >
+            <span>Number of Filaments by Length</span>
             <canvas
               width={this.props.graphSize}
               height={this.props.graphSize}
@@ -208,12 +231,13 @@ export default class Display extends React.Component<
             x + cos,
             y + sin
           );
-          if (subunit.hasAtp) {
-            grad.addColorStop(0, "red");
-          } else {
-            grad.addColorStop(0, "#ff6a4d");
-          }
-          grad.addColorStop(1, "#ffd17d");
+          grad.addColorStop(
+            0,
+            subunit.hasAtp
+              ? this.props.atpSubunitColor
+              : this.props.adpSubunitColor
+          );
+          grad.addColorStop(1, this.props.subunitBindingDomainColor);
           ctx.fillStyle = grad;
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.fill();
@@ -230,17 +254,23 @@ export default class Display extends React.Component<
     const c = this.atpGraphCanvasRef.current;
     const size = this.props.graphSize;
     const rel = (ratio: number) => size * ratio;
+    const font = `${Math.round(
+      rel(0.05)
+    )}px Segoe UI, Tahoma, Geneva, Verdana, sans-serif`;
     if (c) {
       const ctx = c.getContext("2d");
       if (ctx) {
         ctx.clearRect(0, 0, size, size);
-        ctx.beginPath();
-        ctx.moveTo(rel(0.1), rel(0.1));
-        ctx.lineTo(rel(0.1), rel(0.9));
-        ctx.lineTo(rel(0.9), rel(0.9));
-        ctx.strokeStyle = "white";
         ctx.lineWidth = 1;
-        ctx.stroke();
+        // Draw texts
+        {
+          ctx.font = `normal bold ${font}`;
+          ctx.textAlign = "left";
+          ctx.fillStyle = this.props.atpSubunitColor;
+          ctx.fillText("ATP", rel(0.14), rel(0.97));
+          ctx.fillStyle = this.props.adpSubunitColor;
+          ctx.fillText("ADP", rel(0.25), rel(0.97));
+        }
         if (this.state.statistics.length !== 0) {
           const maxHeight = this.state.statistics.reduce(
             (prev: number, curr: IStatistics) => {
@@ -255,19 +285,27 @@ export default class Display extends React.Component<
               rel(0.9) - (rel(0.7) * value) / maxHeight
             );
           };
+          // Draw the graph of the number of subunits with ATP
           ctx.beginPath();
           this.state.statistics
             .map((value) => value.numberWithAtp)
             .forEach(lineTo);
-          ctx.strokeStyle = "red";
+          ctx.strokeStyle = this.props.atpSubunitColor;
           ctx.stroke();
+          // Draw the graph of the number of subunits with ADP
           ctx.beginPath();
           this.state.statistics
             .map((value) => value.numberWithAdp)
             .forEach(lineTo);
-          ctx.strokeStyle = "#ff6a4d";
+          ctx.strokeStyle = this.props.adpSubunitColor;
           ctx.stroke();
+          // Draw the maximum height
+          ctx.font = font;
+          ctx.fillStyle = "white";
+          ctx.textAlign = "right";
+          ctx.fillText(Math.floor(maxHeight).toString(), rel(0.88), rel(0.18));
         }
+        this.drawGraphBox(ctx);
       }
     }
   }
@@ -275,7 +313,38 @@ export default class Display extends React.Component<
   /**
    * draws the graph of number of filaments by length
    */
-  private drawLengthGraph(): void {}
+  private drawLengthGraph(): void {
+    const c = this.lengthGraphCanvasRef.current;
+    const size = this.props.graphSize;
+    const rel = (ratio: number) => size * ratio;
+    if (c) {
+      const ctx = c.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, size, size);
+        this.drawGraphBox(ctx);
+      }
+    }
+  }
+
+  private drawGraphBox(ctx: CanvasRenderingContext2D) {
+    const rel = (ratio: number) => this.props.graphSize * ratio;
+    ctx.beginPath();
+    ctx.moveTo(rel(0.1), rel(0.1));
+    ctx.lineTo(rel(0.1), rel(0.9));
+    ctx.lineTo(rel(0.9), rel(0.9));
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.lineTo(rel(0.1), rel(0.2));
+    ctx.lineTo(rel(0.9), rel(0.2));
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
   /**
    * Retrieve
    */
