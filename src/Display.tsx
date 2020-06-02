@@ -1,5 +1,5 @@
 import React from "react";
-import ISimulation, { IStatistics } from "./Simulation";
+import ISimulation, { IStatistics, Vector } from "./Simulation";
 import "./Display.scss";
 import Button from "./Button";
 
@@ -46,6 +46,11 @@ export interface IDisplayProperties {
    * color of binding domain in subunits
    */
   subunitBindingDomainColor: string;
+
+  /**
+   * size of cells in the grid
+   */
+  cellSize: number;
 
   /**
    * invoked when the user pressed the `reset` button
@@ -168,8 +173,15 @@ export default class Display extends React.Component<
           onMouseUp={() => (this.mouseDown = false)}
           onMouseMove={(event) => {
             if (this.mouseDown) {
-              this.props.simulation.add([event.clientX, event.clientY]);
+              this.props.simulation.add(
+                this.convertLeftToRight([event.clientX, event.clientY])
+              );
             }
+          }}
+          onClick={(event) => {
+            this.props.simulation.add(
+              this.convertLeftToRight([event.clientX, event.clientY])
+            );
           }}
         />
         <div className="display-ui-wrapper">
@@ -252,10 +264,13 @@ export default class Display extends React.Component<
     if (c) {
       const ctx = c.getContext("2d");
       if (ctx) {
-        ctx.globalCompositeOperation = "destination-over";
         ctx.clearRect(0, 0, this.props.width, this.props.height);
+        // Draw grid
+        this.drawGrid(ctx);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "black";
         for (const subunit of current) {
-          const [x, y] = subunit.pos;
+          const [x, y] = this.convertRightToLeft(subunit.pos);
           const cos = radius * Math.cos(subunit.orientation);
           const sin = radius * Math.sin(subunit.orientation);
           ctx.beginPath();
@@ -278,6 +293,59 @@ export default class Display extends React.Component<
           ctx.stroke();
         }
       }
+    }
+  }
+
+  /**
+   * draws the grid
+   * @param ctx canvas to draw graph on
+   */
+  private drawGrid(ctx: CanvasRenderingContext2D): void {
+    const width = this.props.width;
+    const height = this.props.height;
+    const center = this.convertRightToLeft([0, 0]);
+    const xMinus = this.convertRightToLeft([-width / 2, 0]);
+    const xPlus = this.convertRightToLeft([width / 2, 0]);
+    const yMinus = this.convertRightToLeft([0, -height / 2]);
+    const yPlus = this.convertRightToLeft([0, height / 2]);
+    // Draw axes
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "gray";
+    ctx.beginPath();
+    ctx.lineTo(...xMinus);
+    ctx.lineTo(...xPlus);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.lineTo(...yMinus);
+    ctx.lineTo(...yPlus);
+    ctx.stroke();
+
+    ctx.lineWidth = 0.5;
+
+    let x = 0;
+    while (x < width / 2) {
+      ctx.beginPath();
+      ctx.lineTo(center[0] + x, yMinus[1]);
+      ctx.lineTo(center[0] + x, yPlus[1]);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.lineTo(center[0] - x, yMinus[1]);
+      ctx.lineTo(center[0] - x, yPlus[1]);
+      ctx.stroke();
+      x += this.props.cellSize;
+    }
+
+    let y = 0;
+    while (y < height / 2) {
+      ctx.beginPath();
+      ctx.lineTo(xMinus[0], center[1] + y);
+      ctx.lineTo(xPlus[0], center[1] + y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.lineTo(xMinus[0], center[1] - y);
+      ctx.lineTo(xPlus[0], center[1] - y);
+      ctx.stroke();
+      y += this.props.cellSize;
     }
   }
 
@@ -364,8 +432,8 @@ export default class Display extends React.Component<
             );
             const maxLength = Math.max(...keys);
             const minLength = Math.min(...keys);
-            const domainSize = (maxLength - minLength) + 1;
-            const fillRect = (keyValue: number[]): void => {
+            const domainSize = maxLength - minLength + 1;
+            const fillRect = (keyValue: [number, number]): void => {
               const [length, number] = keyValue;
               const width = rel(0.8) / domainSize;
               const height = (rel(0.7) * number) / maxNumber;
@@ -381,7 +449,9 @@ export default class Display extends React.Component<
             };
 
             ctx.fillStyle = this.props.subunitBindingDomainColor;
-            keys.map((key) => [key, curr.get(key) as number]).forEach(fillRect);
+            keys
+              .map((key) => [key, curr.get(key) as number] as [number, number])
+              .forEach(fillRect);
 
             // Draw the maximum height
             ctx.font = this.font;
@@ -399,6 +469,10 @@ export default class Display extends React.Component<
     }
   }
 
+  /**
+   * draw graph axis
+   * @param ctx canvas to draw graph on
+   */
   private drawGraphBox(ctx: CanvasRenderingContext2D) {
     const rel = (ratio: number) => this.props.graphSize * ratio;
     ctx.beginPath();
@@ -418,8 +492,9 @@ export default class Display extends React.Component<
     ctx.stroke();
     ctx.setLineDash([]);
   }
+
   /**
-   * Retrieve
+   * Retrieve statistics from the simulation implementation
    */
   private updateGraphs(): void {
     const statistics = this.state.statistics;
@@ -427,5 +502,33 @@ export default class Display extends React.Component<
     if (statistics.length > this.props.reserveStatisticsFor) {
       statistics.splice(0, 1);
     }
+  }
+
+  /**
+   * converts vector of left-handed coordinate system to vector of right-handed coordinate system
+   * @param left vector of left-handed coordinate system
+   */
+  private convertLeftToRight(left: Vector): Vector {
+    const width = this.props.width;
+    const height = this.props.height;
+    let [x, y] = left;
+    x -= width / 2;
+    y -= height / 2;
+    y *= -1;
+    return [x, y];
+  }
+
+  /**
+   * converts vector of right-handed coordinate system to vector of left-handed coordinate system
+   * @param right vector of right-handed coordinate system
+   */
+  private convertRightToLeft(right: Vector): Vector {
+    const width = this.props.width;
+    const height = this.props.height;
+    let [x, y] = right;
+    x += width / 2;
+    y *= -1;
+    y += height / 2;
+    return [x, y];
   }
 }

@@ -47,6 +47,7 @@ export default class App extends React.Component<{}, IAppState> {
           atpSubunitColor="red"
           adpSubunitColor="#ff6a4d"
           subunitBindingDomainColor="#ffd17d"
+          cellSize={40}
           onReset={() => {
             this.setState({
               simulation: new ActinSimulation()
