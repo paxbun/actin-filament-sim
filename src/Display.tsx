@@ -23,6 +23,16 @@ export interface IDisplayProperties {
   height: number;
 
   /**
+   * the width and the height of the graphs
+   */
+  graphSize: number;
+
+  /**
+   * Number of seconds where statistics are reserved
+   */
+  reserveStatisticsFor: number;
+
+  /**
    * invoked when the user pressed the `reset` button
    */
   onReset: () => void;
@@ -33,7 +43,7 @@ export interface IDisplayProperties {
  */
 export interface IDisplayState {
   /**
-   * Statistics retrieved within the last 20 seconds
+   * Statistics retrieved within the last few seconds
    */
   statistics: IStatistics[];
 }
@@ -61,9 +71,23 @@ export default class Display extends React.Component<
   private lastPoint: number = Date.now();
 
   /**
-   * the canvas to draw
+   * the canvas to draw subunits
    */
   private canvasRef: React.RefObject<HTMLCanvasElement> = React.createRef();
+
+  /**
+   * the canvas to draw graph of number of subunits
+   */
+  private atpGraphCanvasRef: React.RefObject<
+    HTMLCanvasElement
+  > = React.createRef();
+
+  /**
+   * the canvas to draw graph of number of filaments by length
+   */
+  private lengthGraphCanvasRef: React.RefObject<
+    HTMLCanvasElement
+  > = React.createRef();
 
   public constructor(props: IDisplayProperties) {
     super(props);
@@ -74,7 +98,7 @@ export default class Display extends React.Component<
 
   public componentDidMount() {
     this.lastPoint = Date.now();
-    window.requestAnimationFrame(() => this.draw());
+    this.draw();
     this.ticker = window.setInterval(() => this.tick(), 1000 / 60);
     this.statisticsTicker = window.setInterval(() => this.updateGraphs(), 1000);
   }
@@ -110,16 +134,34 @@ export default class Display extends React.Component<
             this.props.simulation.add([event.clientX, event.clientY]);
           }}
         />
-        <Button
-          onClick={() => {
-            this.setState({
-              statistics: [],
-            });
-            this.props.onReset();
-          }}
-        >
-          Reset
-        </Button>
+        <div className="display-ui-wrapper">
+          <div className="display-ui">
+            <canvas
+              width={this.props.graphSize}
+              height={this.props.graphSize}
+              ref={this.atpGraphCanvasRef}
+            />
+          </div>
+          <br />
+          <div className="display-ui">
+            <canvas
+              width={this.props.graphSize}
+              height={this.props.graphSize}
+              ref={this.lengthGraphCanvasRef}
+            />
+          </div>
+          <br />
+          <Button
+            onClick={() => {
+              this.setState({
+                statistics: [],
+              });
+              this.props.onReset();
+            }}
+          >
+            Reset
+          </Button>
+        </div>
       </div>
     );
   }
@@ -137,6 +179,16 @@ export default class Display extends React.Component<
    * draws the current state
    */
   private draw(): void {
+    this.drawSubunits();
+    this.drawAtpGraph();
+    this.drawLengthGraph();
+    window.requestAnimationFrame(() => this.draw());
+  }
+
+  /**
+   * draws the subunits
+   */
+  private drawSubunits(): void {
     const current = this.props.simulation.getCurrentState();
     const radius = this.props.simulation.getRadius();
     const c = this.canvasRef.current;
@@ -156,8 +208,12 @@ export default class Display extends React.Component<
             x + cos,
             y + sin
           );
-          grad.addColorStop(0, "red");
-          grad.addColorStop(1, "yellow");
+          if (subunit.hasAtp) {
+            grad.addColorStop(0, "red");
+          } else {
+            grad.addColorStop(0, "#ff6a4d");
+          }
+          grad.addColorStop(1, "#ffd17d");
           ctx.fillStyle = grad;
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.fill();
@@ -165,16 +221,68 @@ export default class Display extends React.Component<
         }
       }
     }
-    window.requestAnimationFrame(() => this.draw());
   }
 
+  /**
+   * draws the graph of number of subunits
+   */
+  private drawAtpGraph(): void {
+    const c = this.atpGraphCanvasRef.current;
+    const size = this.props.graphSize;
+    const rel = (ratio: number) => size * ratio;
+    if (c) {
+      const ctx = c.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, size, size);
+        ctx.beginPath();
+        ctx.moveTo(rel(0.1), rel(0.1));
+        ctx.lineTo(rel(0.1), rel(0.9));
+        ctx.lineTo(rel(0.9), rel(0.9));
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        if (this.state.statistics.length !== 0) {
+          const maxHeight = this.state.statistics.reduce(
+            (prev: number, curr: IStatistics) => {
+              return Math.max(prev, curr.numberWithAtp, curr.numberWithAdp);
+            },
+            0
+          );
+          const lineTo = (value: number, idx: number): void => {
+            ctx.lineTo(
+              rel(0.1) +
+                (rel(0.8) * idx) / (this.props.reserveStatisticsFor - 1),
+              rel(0.9) - (rel(0.7) * value) / maxHeight
+            );
+          };
+          ctx.beginPath();
+          this.state.statistics
+            .map((value) => value.numberWithAtp)
+            .forEach(lineTo);
+          ctx.strokeStyle = "red";
+          ctx.stroke();
+          ctx.beginPath();
+          this.state.statistics
+            .map((value) => value.numberWithAdp)
+            .forEach(lineTo);
+          ctx.strokeStyle = "#ff6a4d";
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  /**
+   * draws the graph of number of filaments by length
+   */
+  private drawLengthGraph(): void {}
   /**
    * Retrieve
    */
   private updateGraphs(): void {
     const statistics = this.state.statistics;
     statistics.push(this.props.simulation.getCurrentStatistics());
-    if (statistics.length > 20) {
+    if (statistics.length > this.props.reserveStatisticsFor) {
       statistics.splice(0, 1);
     }
   }

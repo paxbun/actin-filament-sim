@@ -7,6 +7,14 @@ $display-ui-bgr-faded: rgba(#353d35, 0.2);
   color: white;
 }
 
+.display-ui-wrapper {
+  padding: 20px;
+}
+
+.display-ui-wrapper > * {
+  margin-bottom: 10px;
+}
+
 .display-ui {
   padding: 5px;
   position: relative;

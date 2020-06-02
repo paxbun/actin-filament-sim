@@ -42,6 +42,8 @@ export default class App extends React.Component<{}, IAppState> {
           simulation={this.state.simulation}
           width={this.state.width}
           height={this.state.height}
+          graphSize={250}
+          reserveStatisticsFor={10}
           onReset={() => {
             this.setState({
               simulation: new ActinSimulation()
