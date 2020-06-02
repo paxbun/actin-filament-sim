@@ -19,7 +19,7 @@ export default class Actin implements IActin {
       mass: 10,
       friction: 0,
       frictionAir: 0,
-      restitution: 0,
+      restitution: 1,
     });
     Body.setVelocity(this.body, {
         x: (Math.random() * 2 - 1) * 5,

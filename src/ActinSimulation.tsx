@@ -32,10 +32,14 @@ export default class ActinSimulation implements ISimulation {
         Math.cos((2 * i * Math.PI) / number) * 400,
         Math.sin((2 * i * Math.PI) / number) * 400,
         20,
-        2 * Math.PI * 400 / number + 10,
+        (2 * Math.PI * 400) / number + 10,
         {
           isStatic: true,
           angle: (2 * i * Math.PI) / number,
+          friction: 0,
+          frictionStatic: 0,
+          frictionAir: 0,
+          restitution: 1,
         }
       );
       World.add(this.engine.world, rect);
