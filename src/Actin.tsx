@@ -184,15 +184,21 @@ export default class Actin implements IActin {
     const dS = diff(other.pos, this.pos);
     const angle = dot([cos, sin], dS);
     if (angle > 0) {
+      // `this` is attached to the minus end
       Body.setPosition(other.body, {
         x: this.pos[0] + xx,
         y: this.pos[1] + yy,
       });
+      this.plus = other;
+      other.minus = this;
     } else {
+      // `this` is attached to the plus end
       Body.setPosition(other.body, {
         x: this.pos[0] - xx,
         y: this.pos[1] - yy,
       });
+      other.plus = this;
+      this.minus = other;
     }
     Body.setVelocity(this.body, { x: 0, y: 0 });
     Body.setVelocity(other.body, { x: 0, y: 0 });
