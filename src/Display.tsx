@@ -279,7 +279,7 @@ export default class Display extends React.Component<
           const yy = radius * Math.sin(subunit.orientation);
           ctx.beginPath();
           if (subunit.isSingle) {
-            ctx.fillStyle = "#161717";
+            ctx.fillStyle = "rgb(50, 30, 30)";
           } else {
             const grad = ctx.createLinearGradient(
               x - xx,
@@ -441,6 +441,9 @@ export default class Display extends React.Component<
         if (this.state.statistics.length !== 0) {
           const curr = this.state.statistics[this.state.statistics.length - 1]
             .numberByLength;
+          if (curr.has(1)) {
+            curr.delete(1);
+          }
           if (curr.size !== 0) {
             const keys = Array.from(curr.keys());
             const maxNumber = keys.reduce(

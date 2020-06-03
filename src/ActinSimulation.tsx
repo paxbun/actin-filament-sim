@@ -17,7 +17,7 @@ import {
 } from "matter-js";
 import Actin from "./Actin";
 
-const ACTIN_RADIUS = 3;
+const ACTIN_RADIUS = 4;
 
 /**
  * the implementation of `ISimulation'
@@ -49,7 +49,7 @@ export default class ActinSimulation extends ActinManager
     // }
     Events.on(this.engine, "collisionStart", this.handleCollision.bind(this));
 
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 40; ++i) {
       const theta = 2 * Math.PI * Math.random();
       const radRandom = Math.random();
       const radius = 350 * (1.1 - radRandom * radRandom * radRandom);
@@ -57,7 +57,7 @@ export default class ActinSimulation extends ActinManager
     }
 
     setInterval(() => {
-      for (let i = 0; i < 30; ++i) {
+      for (let i = 0; i < 70; ++i) {
         const theta = 2 * Math.PI * Math.random();
         const radRandom = Math.random();
         const radius = 350 * (1.1 - radRandom * radRandom * radRandom);
@@ -73,17 +73,18 @@ export default class ActinSimulation extends ActinManager
   public precede(deltaTime: number): void {
     const toDetach: Actin[] = [];
     this.actinMap.forEach((actin) => {
-      actin.update();
+      actin.update(toDetach);
       if (abs(actin.pos) > 500) {
         toDetach.push(actin);
       } else if (actin.isPlusEnd) {
         this.actinMap.forEach((other) => {
-          if (actin !== other && other.hasAtp) {
+          if (actin !== other && other.isSingle && other.hasAtp) {
             const xx = 2 * ACTIN_RADIUS * Math.cos(actin.orientation);
             const yy = 2 * ACTIN_RADIUS * Math.sin(actin.orientation);
             const target = sum(actin.pos, [xx, yy]);
             const dS = diff(target, other.pos);
             const dist = abs(dS);
+            const force = 44;
             if (dist < ACTIN_RADIUS * 10) {
               Body.applyForce(
                 other.body,
@@ -92,8 +93,8 @@ export default class ActinSimulation extends ActinManager
                   y: other.pos[1],
                 },
                 {
-                  x: dS[0] * dist,
-                  y: dS[1] * dist,
+                  x: dS[0] * Math.log2(1 + dist) * force,
+                  y: dS[1] * Math.log2(1 + dist) * force,
                 }
               );
             }
@@ -104,7 +105,7 @@ export default class ActinSimulation extends ActinManager
     for (const actin of toDetach) {
       actin.detach();
     }
-    Engine.update(this.engine, deltaTime / 4, 1);
+    Engine.update(this.engine, deltaTime / 10, 1);
   }
 
   public handleCollision(e: IEventCollision<Engine>) {

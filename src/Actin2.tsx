@@ -159,7 +159,7 @@ export default class Actin2 implements IActin {
     const length = this.lengthInverse;
     if (
       Date.now() - this.stateChangedAt >
-      2500 * (1.2 - Math.exp(-length / 5))
+      2000 * (1.2 - Math.exp(-length / 5))
     ) {
       const plus = this.plus as Actin2;
       if (length === 2) {

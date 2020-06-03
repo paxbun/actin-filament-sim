@@ -1,4 +1,4 @@
-import { IActin, Vector, dot, diff } from "./Simulation";
+import { IActin, Vector, dot, diff, abs, div } from "./Simulation";
 import { Engine, Bodies, Body, World } from "matter-js";
 import ActinManager from "./ActinManager";
 
@@ -12,7 +12,9 @@ export default class Actin implements IActin {
   public hasAtp: boolean = false;
   public isPlusEnd: boolean = false;
   public isMinusEnd: boolean = false;
-  public isSingle: boolean = false;
+  public get isSingle() : boolean {
+    return !this.plus && !this.minus;
+  } 
 
   private internal: Body;
 
@@ -65,13 +67,12 @@ export default class Actin implements IActin {
     World.add(engine.world, this.internal);
   }
 
-  public update() {
+  public update(toDetach: Actin[]) {
     this.pos = [this.internal.position.x, this.internal.position.y];
     this.velocity = [this.internal.velocity.x, this.internal.velocity.y];
     this.orientation = this.internal.angle;
     this.isPlusEnd = !!(!this.plus && this.minus);
     this.isMinusEnd = !!(this.plus && !this.minus);
-    this.isSingle = !this.plus && !this.minus;
     Body.applyForce(
       this.body,
       {
@@ -79,16 +80,16 @@ export default class Actin implements IActin {
         y: this.pos[1],
       },
       {
-        x: 100 * (Math.random() * 2 - 1),
-        y: 100 * (Math.random() * 2 - 1),
+        x: 150 * (Math.random() * 2 - 1),
+        y: 150 * (Math.random() * 2 - 1),
       }
     );
-    if (this.createdAt && Date.now() - this.createdAt > 3000) {
+    if (this.createdAt && Date.now() - this.createdAt > 2000) {
       this.hasAtp = true;
       this.createdAt = 0;
     }
     if (this.attachedAt) {
-      if (Date.now() - this.attachedAt > 3000) {
+      if (Date.now() - this.attachedAt > 2000) {
         this.hasAtp = false;
       }
       if (this.plus && !this.minus) {
@@ -100,14 +101,14 @@ export default class Actin implements IActin {
         }
         if (
           Date.now() - this.detachCriterion >
-          1250 * (1.2 - Math.exp(-length / 5))
+          1400 * (1.2 - Math.exp(-length / 5))
         ) {
           if (length === 2) {
-            this.plus.detach();
+            toDetach.push(this.plus);
           } else {
             this.plus.updateDetachCriterion();
           }
-          this.detach();
+          toDetach.push(this);
         }
       }
       if (!this.plus && this.minus) {
@@ -122,13 +123,16 @@ export default class Actin implements IActin {
           5000 * (1.2 - Math.exp(-length / 5))
         ) {
           if (length === 2) {
-            this.minus.detach();
+            toDetach.push(this.minus);
           } else {
             this.minus.updateDetachCriterion();
           }
-          this.detach();
+          toDetach.push(this);
         }
       }
+    } else if (this.isMinusEnd === true) {
+      //force get rid of
+      this.attachedAt = Date.now();
     }
   }
 
@@ -138,8 +142,8 @@ export default class Actin implements IActin {
     const xx = this.radius * 2 * cos;
     const yy = this.radius * 2 * sin;
     const dS = diff(other.pos, this.pos);
-    const angle = dot([cos, sin], dS);
-    if (angle > 0) {
+    const cosangle = dot([cos, sin], dS) / abs(dS);
+    if (cosangle > 0.8) {
       // `this` is attached to the minus end
       if (other.minus) {
         return;
