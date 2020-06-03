@@ -280,7 +280,7 @@ export default class Display extends React.Component<
           ctx.beginPath();
           const grad = ctx.createLinearGradient(x - xx, y - yy, x + xx, y + yy);
           if (subunit.isSingle) {
-            ctx.fillStyle = "transparent";
+            ctx.fillStyle = "#161717";
           } else {
             grad.addColorStop(
               0,

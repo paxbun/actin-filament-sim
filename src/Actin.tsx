@@ -97,6 +97,8 @@ export default class Actin implements IActin {
         while (pointer !== null) {
           pointer = pointer.plus;
           ++length;
+          if (length > 10)
+            break;
         }
         if (
           Date.now() - this.detachCriterion >
@@ -116,6 +118,8 @@ export default class Actin implements IActin {
         while (pointer !== null) {
           pointer = pointer.minus;
           ++length;
+          if (length > 10)
+            break;
         }
         if (
           Date.now() - this.detachCriterion >
