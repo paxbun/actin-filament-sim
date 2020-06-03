@@ -1,8 +1,8 @@
 import React from "react";
 import Display from "./Display";
-import ActinSimulation from "./ActinSimulation";
 import ISimulation from "./Simulation";
 import "./App.scss";
+import ActinSimulation2 from "./ActinSimulation2";
 
 /**
  * state used by `App`
@@ -29,7 +29,7 @@ export default class App extends React.Component<{}, IAppState> {
   public constructor(props: {}) {
     super(props);
     this.state = {
-      simulation: new ActinSimulation(),
+      simulation: new ActinSimulation2(),
       width: window.innerWidth,
       height: window.innerHeight
     };
@@ -51,7 +51,7 @@ export default class App extends React.Component<{}, IAppState> {
           cellSize={40}
           onReset={() => {
             this.setState({
-              simulation: new ActinSimulation()
+              simulation: new ActinSimulation2()
             });
           }}
         />
