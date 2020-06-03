@@ -95,16 +95,16 @@ export interface IActin {
    * `true` if has an ATP; `false` otherwise
    */
   hasAtp: boolean;
-}
 
-/**
- * represents an actin filament
- */
-export interface IActinGroup {
   /**
-   * @returns actins in this filament
+   * `true` if it is at plus end; `false` otherwise
    */
-  actins(): IActin[];
+  isPlusEnd: boolean;
+  
+  /**
+   * `true` if it is at minus end; `false` otherwise
+   */
+  isMinusEnd: boolean;
 }
 
 /**
@@ -134,7 +134,7 @@ export default interface ISimulation {
   /**
    * @returns the list of the subunits in the current state
    */
-  getCurrentState(): IActinGroup[];
+  getCurrentState(): IActin[];
 
   /**
    * @returns the statistics about the current state

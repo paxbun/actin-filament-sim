@@ -237,8 +237,9 @@ export default class Display extends React.Component<
   private tick(): void {
     const newPoint = Date.now();
     const interval = (newPoint - this.lastPoint) / 1000;
+    const fps = Math.round(1 / interval);
     this.setState({
-      fps: Math.round(1 / interval),
+      fps: fps,
     });
     this.props.simulation.precede(interval);
     this.lastPoint = newPoint;
@@ -269,30 +270,38 @@ export default class Display extends React.Component<
         this.drawGrid(ctx);
         ctx.lineWidth = 1;
         ctx.strokeStyle = "black";
-        for (const group of current) {
-          for (const subunit of group.actins()) {
-            const [x, y] = this.convertRightToLeft(subunit.pos);
-            const cos = radius * Math.cos(subunit.orientation);
-            const sin = radius * Math.sin(subunit.orientation);
-            ctx.beginPath();
-            const grad = ctx.createLinearGradient(
-              x - cos,
-              y - sin,
-              x + cos,
-              y + sin
-            );
-            grad.addColorStop(
-              0,
-              subunit.hasAtp
-                ? this.props.atpSubunitColor
-                : this.props.adpSubunitColor
-            );
-            grad.addColorStop(1, this.props.subunitBindingDomainColor);
-            ctx.fillStyle = grad;
-            ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.stroke();
+        for (const subunit of current) {
+          const [x, y] = this.convertRightToLeft(subunit.pos);
+          if (isNaN(x) || isNaN(y)) {
+            continue;
           }
+          const xx = radius * Math.cos(subunit.orientation);
+          const yy = radius * Math.sin(subunit.orientation);
+          ctx.beginPath();
+          const grad = ctx.createLinearGradient(x - xx, y - yy, x + xx, y + yy);
+          grad.addColorStop(
+            0,
+            subunit.hasAtp
+              ? this.props.atpSubunitColor
+              : this.props.adpSubunitColor
+          );
+          // if (subunit.isPlusEnd) {
+          //   grad.addColorStop(1, "blue");
+          // } else if (subunit.isMinusEnd) {
+          //   grad.addColorStop(1, "green");
+          // } else
+          
+          {
+            grad.addColorStop(1, this.props.subunitBindingDomainColor);
+          }
+          ctx.fillStyle = grad;
+
+          // ctx.fillStyle = subunit.hasAtp
+          //   ? this.props.atpSubunitColor
+          //   : this.props.adpSubunitColor;
+          ctx.arc(x, y, radius, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
         }
       }
     }
