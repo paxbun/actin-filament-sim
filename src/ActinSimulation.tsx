@@ -29,24 +29,24 @@ export default class ActinSimulation extends ActinManager
   public constructor() {
     super();
     this.engine.world.gravity.y = 0;
-    const number = 16;
-    for (let i = 0; i < number; ++i) {
-      const rect = Bodies.rectangle(
-        Math.cos((2 * i * Math.PI) / number) * 400,
-        Math.sin((2 * i * Math.PI) / number) * 400,
-        50,
-        (2 * Math.PI * 400) / number + 10,
-        {
-          isStatic: true,
-          angle: (2 * i * Math.PI) / number,
-          friction: 0,
-          frictionStatic: 0,
-          frictionAir: 0,
-          restitution: 1,
-        }
-      );
-      World.add(this.engine.world, rect);
-    }
+    // const number = 16;
+    // for (let i = 0; i < number; ++i) {
+    //   const rect = Bodies.rectangle(
+    //     Math.cos((2 * i * Math.PI) / number) * 400,
+    //     Math.sin((2 * i * Math.PI) / number) * 400,
+    //     50,
+    //     (2 * Math.PI * 400) / number + 10,
+    //     {
+    //       isStatic: true,
+    //       angle: (2 * i * Math.PI) / number,
+    //       friction: 0,
+    //       frictionStatic: 0,
+    //       frictionAir: 0,
+    //       restitution: 1,
+    //     }
+    //   );
+    //   World.add(this.engine.world, rect);
+    // }
     Events.on(this.engine, "collisionStart", this.handleCollision.bind(this));
 
     for (let i = 0; i < 100; ++i) {
@@ -71,10 +71,11 @@ export default class ActinSimulation extends ActinManager
   }
 
   public precede(deltaTime: number): void {
+    const toDetach: Actin[] = [];
     this.actinMap.forEach((actin) => {
       actin.update();
       if (abs(actin.pos) > 500) {
-        actin.detach();
+        toDetach.push(actin);
       } else if (actin.isPlusEnd) {
         this.actinMap.forEach((other) => {
           if (actin !== other && other.hasAtp) {
@@ -100,6 +101,9 @@ export default class ActinSimulation extends ActinManager
         });
       }
     });
+    for (const actin of toDetach) {
+      actin.detach();
+    }
     Engine.update(this.engine, deltaTime / 4, 1);
   }
 

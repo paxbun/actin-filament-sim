@@ -278,22 +278,39 @@ export default class Display extends React.Component<
           const xx = radius * Math.cos(subunit.orientation);
           const yy = radius * Math.sin(subunit.orientation);
           ctx.beginPath();
-          const grad = ctx.createLinearGradient(x - xx, y - yy, x + xx, y + yy);
-          grad.addColorStop(
-            0,
-            subunit.hasAtp
-              ? this.props.atpSubunitColor
-              : this.props.adpSubunitColor
-          );
-          grad.addColorStop(1, this.props.subunitBindingDomainColor);
-          ctx.fillStyle = grad;
+          if (subunit.isSingle) {
+            ctx.fillStyle = "#161717";
+          } else {
+            const grad = ctx.createLinearGradient(
+              x - xx,
+              y - yy,
+              x + xx,
+              y + yy
+            );
+            grad.addColorStop(
+              0,
+              subunit.hasAtp
+                ? this.props.atpSubunitColor
+                : this.props.adpSubunitColor
+            );
+            if (subunit.isPlusEnd) {
+              grad.addColorStop(1, "blue");
+            } else if (subunit.isMinusEnd) {
+              grad.addColorStop(1, "green");
+            } else {
+              grad.addColorStop(1, this.props.subunitBindingDomainColor);
+            }
+            ctx.fillStyle = grad;
+          }
 
           // ctx.fillStyle = subunit.hasAtp
           //   ? this.props.atpSubunitColor
           //   : this.props.adpSubunitColor;
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.fill();
-          ctx.stroke();
+          if (!subunit.isSingle) {
+            ctx.stroke();
+          }
         }
       }
     }
