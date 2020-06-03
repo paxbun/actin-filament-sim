@@ -12,6 +12,7 @@ export default class Actin implements IActin {
   public hasAtp: boolean = false;
   public isPlusEnd: boolean = false;
   public isMinusEnd: boolean = false;
+  public isSingle: boolean = false;
 
   private internal: Body;
 
@@ -64,16 +65,13 @@ export default class Actin implements IActin {
     World.add(engine.world, this.internal);
   }
 
-  public isSingle(): boolean {
-    return !this.plus && !this.minus;
-  }
-
   public update() {
     this.pos = [this.internal.position.x, this.internal.position.y];
     this.velocity = [this.internal.velocity.x, this.internal.velocity.y];
     this.orientation = this.internal.angle;
     this.isPlusEnd = !!(!this.plus && this.minus);
     this.isMinusEnd = !!(this.plus && !this.minus);
+    this.isSingle = !this.plus && !this.minus;
     Body.applyForce(
       this.body,
       {

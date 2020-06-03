@@ -109,8 +109,8 @@ export default class ActinSimulation extends ActinManager
       const actinA = super.retrieve(bodyA);
       const actinB = super.retrieve(bodyB);
       if (actinA && actinB) {
-        const actinASingle = actinA.isSingle() && actinA.hasAtp;
-        const actinBSingle = actinB.isSingle() && actinB.hasAtp;
+        const actinASingle = actinA.isSingle && actinA.hasAtp;
+        const actinBSingle = actinB.isSingle && actinB.hasAtp;
         if (actinASingle && actinBSingle) {
           actinA.makeDimerWith(actinB);
         } else if (actinASingle) {

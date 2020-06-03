@@ -105,6 +105,11 @@ export interface IActin {
    * `true` if it is at minus end; `false` otherwise
    */
   isMinusEnd: boolean;
+
+  /**
+   * `true` if it is a single unit; `false` otherwise
+   */
+  isSingle: boolean;
 }
 
 /**
